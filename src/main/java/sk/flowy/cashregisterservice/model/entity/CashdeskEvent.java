@@ -11,6 +11,9 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
+import static javax.persistence.CascadeType.ALL;
+import static javax.persistence.CascadeType.PERSIST;
+
 @Entity
 @Table(name = "smena")
 @NoArgsConstructor
@@ -29,10 +32,10 @@ public class CashdeskEvent implements Serializable {
     @Column(name = "koniec")
     private Date endOfShift;
 
-    @OneToMany(mappedBy = "cashdeskEvent", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "cashdeskEvent", cascade = ALL)
     private List<CashInEvent> cashInEvents;
 
-    @OneToMany(mappedBy = "cashdeskEvent", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "cashdeskEvent", cascade = ALL)
     private List<CashOutEvent> cashOutEvents;
 
     @ManyToOne
