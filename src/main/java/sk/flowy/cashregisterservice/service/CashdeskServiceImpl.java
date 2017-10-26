@@ -2,6 +2,7 @@ package sk.flowy.cashregisterservice.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import sk.flowy.cashregisterservice.exception.UserNotOnShiftException;
 import sk.flowy.cashregisterservice.model.entity.CashInEvent;
 import sk.flowy.cashregisterservice.model.entity.CashOutEvent;
 import sk.flowy.cashregisterservice.model.entity.CashdeskEvent;
@@ -37,16 +38,57 @@ public class CashdeskServiceImpl implements CashdeskService {
         if (cashdeskEvents.isEmpty()) {
             return false;
         }
+        //take last shift
         CashdeskEvent cashdeskEvent = cashdeskEvents.get(cashdeskEvents.size() - 1);
 
-        return cashdeskEvent.getEndOfShift() == null;
+        return cashdeskEvent.getStartOfShift()!=null && cashdeskEvent.getEndOfShift() == null;
+    }
+
+    @Override
+    public CashdeskEvent doDailyBalance(Long userId, int cashBalance, int gastroTicketsBalance, int terminalBalance) {
+        if (!isUserOnShift(userId)) {
+            throw new UserNotOnShiftException();
+        }
+        // smena zacala -> cashdeskEvents ma v sebe aspon jeden event -> cashInEvent
+
+        CashdeskUser cashdeskUser = cashdeskUserRepository.findOne(userId);
+        CashdeskEvent cashdeskEvent = cashdeskUser.getCashdeskEvents().get(cashdeskUser.getCashdeskEvents().size() - 1);
+
+        //inicializujeme cash out eventy
+        if (cashdeskEvent.getCashOutEvents() == null) {
+            cashdeskEvent.setCashOutEvents(new ArrayList<>());
+        }
+
+        cashdeskEvent.setEndOfShift(new Date());
+
+        CashOutEvent cashOutEvent = new CashOutEvent();
+        cashOutEvent.setCashBalance(cashBalance);
+        cashOutEvent.setGastroTicketsBalance(gastroTicketsBalance);
+        cashOutEvent.setTerminalBalance(terminalBalance);
+        cashOutEvent.setCreatedAt(new Date());
+        cashOutEvent.setDailyBalance(true);
+        cashOutEvent.setCashdeskEvent(cashdeskEvent);
+
+        cashdeskEvent.getCashOutEvents().add(cashOutEvent);
+
+        return cashdeskEventRepository.save(cashdeskEvent);
+    }
+
+    @Override
+    public CashdeskEvent doIntervalBalance(Long userId, int cashBalance, int gastroTicketsBalance, int
+            terminalBalance) {
+        //TODO implement
+        return null;
     }
 
     //TODO remove
-    private void createShift(CashdeskUser cashdeskUser) {
-        if (cashdeskUser.getCashdeskEvents()==null||cashdeskUser.getCashdeskEvents().isEmpty()){
+    private CashdeskEvent createShift(Long userId) {
+        CashdeskUser cashdeskUser = cashdeskUserRepository.findOne(userId);
+
+        if (cashdeskUser.getCashdeskEvents() == null || cashdeskUser.getCashdeskEvents().isEmpty()) {
             cashdeskUser.setCashdeskEvents(new ArrayList<>());
         }
+
         CashdeskEvent cashdeskEvent = new CashdeskEvent();
         cashdeskEvent.setStartOfShift(new Date(currentTimeMillis() - 24 * 60 * 60 * 1000));
 
@@ -55,42 +97,19 @@ public class CashdeskServiceImpl implements CashdeskService {
         cashInEvent.setCreatedAt(new Date(currentTimeMillis() - 24 * 60 * 60 * 1000));
         cashInEvent.setCashdeskEvent(cashdeskEvent);
 
-        cashdeskEvent.setCashInEvents(Collections.singletonList(cashInEvent));
+        List<CashInEvent> cashInEvents = cashdeskEvent.getCashInEvents();
+        if (cashInEvents == null || cashInEvents.isEmpty()) {
+            ArrayList<CashInEvent> events = new ArrayList<>();
+            events.add(cashInEvent);
+            cashdeskEvent.setCashInEvents(events);
+        } else {
+            cashdeskEvent.getCashInEvents().add(cashInEvent);
+        }
+
         cashdeskEvent.setCashdeskUser(cashdeskUser);
 
         cashdeskUser.getCashdeskEvents().add(cashdeskEvent);
-        cashdeskEventRepository.save(cashdeskEvent);
-    }
 
-    @Override
-    public CashdeskEvent doDailyBalance(Long userId, int cashBalance, int gastroTicketsBalance, int terminalBalance) {
-        CashdeskUser cashdeskUser = cashdeskUserRepository.findOne(userId);
-        createShift(cashdeskUser);
-
-        List<CashdeskEvent> cashdeskEvents = cashdeskUser.getCashdeskEvents();
-        CashdeskEvent cashdeskEvent = cashdeskEvents.get(cashdeskEvents.size() - 1);
-        cashdeskEvent.setCashOutEvents(new ArrayList<>());
-
-        CashOutEvent cashOutEvent = new CashOutEvent();
-        cashOutEvent.setCashdeskEvent(cashdeskEvent);
-        cashOutEvent.setCashBalance(cashBalance);
-        cashOutEvent.setGastroTicketsBalance(gastroTicketsBalance);
-        cashOutEvent.setTerminalBalance(terminalBalance);
-        cashOutEvent.setCreatedAt(new Date());
-        cashOutEvent.setDailyBalance(true);
-
-        cashdeskEvent.getCashOutEvents().add(cashOutEvent);
-        cashdeskEvent.setEndOfShift(new Date());
-
-        cashdeskEventRepository.save(cashdeskEvent);
-
-        return cashdeskEvent;
-    }
-
-    @Override
-    public CashdeskEvent doIntervalBalance(Long userId, int cashBalance, int gastroTicketsBalance, int
-            terminalBalance) {
-        //TODO implement
-        return null;
+        return cashdeskEventRepository.save(cashdeskEvent);
     }
 }
