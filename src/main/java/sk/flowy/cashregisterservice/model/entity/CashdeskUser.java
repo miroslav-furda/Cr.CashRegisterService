@@ -1,4 +1,4 @@
-package sk.flowy.cashregisterservice.entity;
+package sk.flowy.cashregisterservice.model.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.List;
 
 @Entity
@@ -14,7 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 @Setter
-public class CashdeskUser {
+public class CashdeskUser implements Serializable {
 
     @GeneratedValue
     @Id
