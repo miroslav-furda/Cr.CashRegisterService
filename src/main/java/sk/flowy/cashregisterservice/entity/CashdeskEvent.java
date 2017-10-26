@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "smena")
@@ -21,17 +22,17 @@ public class CashdeskEvent {
     @Id
     private Long id;
 
-    @Column(name="zaciatok")
+    @Column(name = "zaciatok")
     private Date startOfShift;
 
-    @Column(name="koniec")
+    @Column(name = "koniec")
     private Date endOfShift;
 
-    @OneToOne(mappedBy = "cashdeskEvent", cascade = CascadeType.PERSIST)
-    private CashInEvent cashInEvent;
+    @OneToMany(mappedBy = "cashdeskEvent", cascade = CascadeType.PERSIST)
+    private List<CashInEvent> cashInEvents;
 
-    @OneToOne(mappedBy = "cashdeskEvent", cascade = CascadeType.PERSIST)
-    private CashOutEvent cashOutEvent;
+    @OneToMany(mappedBy = "cashdeskEvent", cascade = CascadeType.PERSIST)
+    private List<CashOutEvent> cashOutEvents;
 
     @ManyToOne
     @JoinColumn(name = "id_uzivatel")

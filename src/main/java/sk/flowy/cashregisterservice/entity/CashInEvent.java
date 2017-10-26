@@ -21,13 +21,13 @@ public class CashInEvent {
     @Id
     private Long id;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "id_smena")
     @JsonIgnore
     private CashdeskEvent cashdeskEvent;
 
     @Column(name="hotovost_suma")
-    private Integer balance;
+    private int balance;
 
     @Column(name="created_at")
     private Date createdAt;

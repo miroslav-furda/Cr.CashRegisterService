@@ -21,19 +21,19 @@ public class CashOutEvent {
     @Id
     private Long id;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "id_smena")
     @JsonIgnore
     private CashdeskEvent cashdeskEvent;
 
     @Column(name="hotovost_suma")
-    private Integer cashBalance;
+    private int cashBalance;
 
     @Column(name="stravne_listky_suma")
-    private Integer gastroTicketsBalance;
+    private int gastroTicketsBalance;
 
     @Column(name="terminal_suma")
-    private Integer terminalBalance;
+    private int terminalBalance;
 
     @Column(name="denna_uzavierka")
     private boolean dailyBalance;

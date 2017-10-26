@@ -13,8 +13,10 @@ import sk.flowy.cashregisterservice.entity.CashdeskUser;
 import sk.flowy.cashregisterservice.repository.CashdeskEventRepository;
 import sk.flowy.cashregisterservice.repository.CashdeskUserRepository;
 
+import java.util.Collections;
 import java.util.Date;
 
+import static java.util.Collections.singletonList;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -32,8 +34,8 @@ public class TempController {
     private CashdeskUserRepository cashdeskUserRepository;
 
     @RequestMapping(value = "/test/{userId}", method = RequestMethod.GET, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<CashdeskUser> test(@PathVariable("userId") Long ean) {
-        Date startOfShift = new Date(System.currentTimeMillis()-24*60*60*1000);
+    public ResponseEntity<CashdeskUser> test(@PathVariable("userId") Long userId) {
+        Date startOfShift = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
         Date endOfShift = new Date();
 
         CashInEvent cashInEvent = new CashInEvent();
@@ -45,15 +47,15 @@ public class TempController {
         cashOutEvent.setCreatedAt(endOfShift);
 
         CashdeskEvent cashdeskEvent = new CashdeskEvent();
-        cashdeskEvent.setCashInEvent(cashInEvent);
-        cashdeskEvent.setCashOutEvent(cashOutEvent);
+        cashdeskEvent.setCashInEvents(singletonList(cashInEvent));
+        cashdeskEvent.setCashOutEvents(singletonList(cashOutEvent));
         cashdeskEvent.setStartOfShift(startOfShift);
         cashdeskEvent.setEndOfShift(endOfShift);
 
         cashInEvent.setCashdeskEvent(cashdeskEvent);
         cashOutEvent.setCashdeskEvent(cashdeskEvent);
 
-        CashdeskUser cashdeskUser = cashdeskUserRepository.findOne(ean);
+        CashdeskUser cashdeskUser = cashdeskUserRepository.findOne(userId);
 
         cashdeskEvent.setCashdeskUser(cashdeskUser);
         cashdeskEventRepository.save(cashdeskEvent);
