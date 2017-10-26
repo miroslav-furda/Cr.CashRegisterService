@@ -39,4 +39,19 @@ public class CashdeskEvent implements Serializable {
     @JoinColumn(name = "id_uzivatel")
     @JsonIgnore
     private CashdeskUser cashdeskUser;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        CashdeskEvent that = (CashdeskEvent) o;
+
+        return id != null ? id.equals(that.id) : that.id == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
+    }
 }
