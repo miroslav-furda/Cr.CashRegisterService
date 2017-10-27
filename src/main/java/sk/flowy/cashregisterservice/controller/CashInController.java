@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import sk.flowy.cashregisterservice.entity.CashdeskEvent;
 import sk.flowy.cashregisterservice.exception.LackOfInformationForCashInException;
 import sk.flowy.cashregisterservice.model.CashInWrapper;
 import sk.flowy.cashregisterservice.service.CashdeskService;
