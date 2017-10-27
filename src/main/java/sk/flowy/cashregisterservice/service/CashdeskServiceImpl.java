@@ -38,6 +38,7 @@ public class CashdeskServiceImpl implements CashdeskService {
         CashInEvent cashInEvent = new CashInEvent();
         cashInEvent.setBalance(cashInWrapper.getBalance());
         cashInEvent.setCreatedAt(createdAt);
+        cashInEvent.setCashdeskEvent(shift);
 
         List<CashInEvent> cashInEvents = shift.getCashInEvents();
         cashInEvents.add(cashInEvent);
@@ -50,11 +51,17 @@ public class CashdeskServiceImpl implements CashdeskService {
         CashdeskUser cashdeskUser = cashdeskUserRepository.findOne(userId);
         if ( cashdeskUser != null) {
             List<CashdeskEvent> cashdeskEvents = cashdeskUser.getCashdeskEvents();
-            if (cashdeskEvents.isEmpty()) {
+            if (cashdeskEvents == null || cashdeskEvents.isEmpty()) {
                 Date createdAt = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
                 return createShift(userId, createdAt);
             } else {
-                return cashdeskEvents.get(cashdeskEvents.size() - 1);
+                CashdeskEvent lastShift = cashdeskEvents.get(cashdeskEvents.size() - 1);
+                if (lastShift.getEndOfShift() != null) {
+                    Date createdAt = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
+                    return createShift(userId, createdAt);
+                } else {
+                    return lastShift;
+                }
             }
         } else {
             throw new CashdeskUserNotFoundException();
@@ -70,7 +77,7 @@ public class CashdeskServiceImpl implements CashdeskService {
         cashdeskEvent.setStartOfShift(startOfShift);
         cashdeskEvent.setCashInEvents(cashInEvents);
 
-        return cashdeskEventRepository.save(cashdeskEvent);
+        return cashdeskEvent;
     }
 
 }

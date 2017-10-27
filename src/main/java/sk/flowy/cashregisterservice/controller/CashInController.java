@@ -9,6 +9,8 @@ import sk.flowy.cashregisterservice.exception.LackOfInformationForCashInExceptio
 import sk.flowy.cashregisterservice.model.CashInWrapper;
 import sk.flowy.cashregisterservice.service.CashdeskService;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 @RestController
 @RequestMapping("/api/flowy")
 public class CashInController {
@@ -22,7 +24,8 @@ public class CashInController {
 
     @RequestMapping(
             value = "/cashin",
-            method = RequestMethod.POST)
+            method = RequestMethod.POST,
+            produces = APPLICATION_JSON_VALUE)
     public ResponseEntity cashDeskInput(
             @RequestBody CashInWrapper cashInWrapper) {
         if (cashInWrapper.getUserId() != null && cashInWrapper.getBalance() != null) {
