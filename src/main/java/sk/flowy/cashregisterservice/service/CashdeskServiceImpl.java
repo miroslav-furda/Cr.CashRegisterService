@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import sk.flowy.cashregisterservice.entity.CashInEvent;
 import sk.flowy.cashregisterservice.entity.CashdeskEvent;
 import sk.flowy.cashregisterservice.entity.CashdeskUser;
-import sk.flowy.cashregisterservice.exception.CashdeskEventNotFoundException;
+import sk.flowy.cashregisterservice.exception.CashdeskUserNotFoundException;
 import sk.flowy.cashregisterservice.repository.CashdeskEventRepository;
 import sk.flowy.cashregisterservice.repository.CashdeskUserRepository;
 
@@ -30,33 +30,34 @@ public class CashdeskServiceImpl implements CashdeskService {
     }
 
     @Override
-    public Long insertMoney(Long userId, Integer moneyValue, Long cashdeskEventId) {
+    public CashdeskEvent insertMoney(Long userId, Integer moneyValue) {
         Date createdAt = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
-        CashdeskEvent shift;
-        if (cashdeskEventId == null) {
-            shift = createShift(userId, createdAt);
-        } else {
-            shift = getShift(cashdeskEventId);
-        }
+        CashdeskEvent shift = getShift(userId);
 
         CashInEvent cashInEvent = new CashInEvent();
         cashInEvent.setBalance(moneyValue);
         cashInEvent.setCreatedAt(createdAt);
 
-        if (shift != null) {
-            List<CashInEvent> cashInEvents = shift.getCashInEvents();
-            cashInEvents.add(cashInEvent);
+        List<CashInEvent> cashInEvents = shift.getCashInEvents();
+        cashInEvents.add(cashInEvent);
 
-            cashdeskEventRepository.save(shift);
-            return shift.getId();
-        } else {
-            throw new CashdeskEventNotFoundException();
-        }
-
+        return cashdeskEventRepository.save(shift);
     }
 
-    private CashdeskEvent getShift(Long cashdeskEventId) {
-        return cashdeskEventRepository.findOne(cashdeskEventId);
+    private CashdeskEvent getShift(Long userId) {
+
+        CashdeskUser cashdeskUser = cashdeskUserRepository.findOne(userId);
+        if ( cashdeskUser != null) {
+            List<CashdeskEvent> cashdeskEvents = cashdeskUser.getCashdeskEvents();
+            if (cashdeskEvents.isEmpty()) {
+                Date createdAt = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
+                return createShift(userId, createdAt);
+            } else {
+                return cashdeskEvents.get(cashdeskEvents.size() - 1);
+            }
+        } else {
+            throw new CashdeskUserNotFoundException();
+        }
     }
 
     private CashdeskEvent createShift(Long userId, Date startOfShift) {

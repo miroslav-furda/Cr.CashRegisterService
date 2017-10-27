@@ -1,8 +1,10 @@
 package sk.flowy.cashregisterservice.service;
 
 
+import sk.flowy.cashregisterservice.entity.CashdeskEvent;
+
 public interface CashdeskService {
 
-    public Long insertMoney(Long userId, Integer moneyValue, Long cashdeskEventId);
+    public CashdeskEvent insertMoney(Long userId, Integer moneyValue);
 
 }
