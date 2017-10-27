@@ -7,6 +7,7 @@ import sk.flowy.cashregisterservice.entity.CashInEvent;
 import sk.flowy.cashregisterservice.entity.CashdeskEvent;
 import sk.flowy.cashregisterservice.entity.CashdeskUser;
 import sk.flowy.cashregisterservice.exception.CashdeskUserNotFoundException;
+import sk.flowy.cashregisterservice.model.CashInWrapper;
 import sk.flowy.cashregisterservice.repository.CashdeskEventRepository;
 import sk.flowy.cashregisterservice.repository.CashdeskUserRepository;
 
@@ -30,12 +31,12 @@ public class CashdeskServiceImpl implements CashdeskService {
     }
 
     @Override
-    public CashdeskEvent insertMoney(Long userId, Integer moneyValue) {
+    public CashdeskEvent insertMoney(CashInWrapper cashInWrapper) {
         Date createdAt = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
-        CashdeskEvent shift = getShift(userId);
+        CashdeskEvent shift = getShift(cashInWrapper.getUserId());
 
         CashInEvent cashInEvent = new CashInEvent();
-        cashInEvent.setBalance(moneyValue);
+        cashInEvent.setBalance(cashInWrapper.getBalance());
         cashInEvent.setCreatedAt(createdAt);
 
         List<CashInEvent> cashInEvents = shift.getCashInEvents();

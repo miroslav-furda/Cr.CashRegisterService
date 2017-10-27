@@ -18,7 +18,7 @@ public class CashdeskServiceImplTest {
     }
 
     @Test
-    public void if_user_is_not_found_or_existing_throw_cashdesk_user_not_found_exception() {
+    public void if_user_is_not_found_or_not_existing_throw_cashdesk_user_not_found_exception() {
 
     }
 }

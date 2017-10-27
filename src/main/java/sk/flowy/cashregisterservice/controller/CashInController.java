@@ -27,7 +27,7 @@ public class CashInController {
             @RequestBody CashInWrapper cashInWrapper) {
         CashdeskEvent cashdeskEvent = null;
         if (cashInWrapper.getUserId() != null && cashInWrapper.getBalance() != null) {
-            cashdeskEvent = cashdeskService.insertMoney(cashInWrapper.getUserId(), cashInWrapper.getBalance());
+            cashdeskEvent = cashdeskService.insertMoney(cashInWrapper);
         } else {
             throw new LackOfInformationForCashInException();
         }
