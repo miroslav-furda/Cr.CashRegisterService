@@ -8,31 +8,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import sk.flowy.cashregisterservice.model.BalanceWrapper;
-import sk.flowy.cashregisterservice.model.entity.CashdeskEvent;
+import sk.flowy.cashregisterservice.model.entity.CashDeskEvent;
 import sk.flowy.cashregisterservice.security.CallResponse;
 import sk.flowy.cashregisterservice.security.TokenRepository;
-import sk.flowy.cashregisterservice.service.CashdeskService;
+import sk.flowy.cashregisterservice.service.CashDeskService;
 
-import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest(value = CashdeskController.class)
-public class CashdeskControllerTest {
+@WebMvcTest(value = CashDeskController.class)
+public class CashDeskControllerTest {
 
     private static final String VALID_TOKEN = "Bearer " +
             "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOjYyLCJpc3MiOiJodHRwOlwvXC9sYWJhcy5wcm9taXNlby5jb21cL2FwcFwvcHVibGljXC9hcGlcL2F1dGhlbnRpY2F0ZSIsImlhdCI6MTUwODIzMjIyMSwiZXhwIjoxNTA4NDI0MjIxLCJuYmYiOjE1MDgyMzIyMjEsImp0aSI6IjdlMmQ1NTg2Yzg4YjAzMzE0NDAzZDRmM2U3ODIyMjAzIn0.ujt2PXYrlmHVcL1GZo5ByZHcHdBaPr-dkCgtvBx8uG8";
@@ -40,7 +35,7 @@ public class CashdeskControllerTest {
     @Autowired
     private MockMvc mvc;
     @MockBean
-    private CashdeskService cashdeskService;
+    private CashDeskService cashDeskService;
     @MockBean
     private TokenRepository tokenRepository;
     @MockBean
@@ -64,9 +59,9 @@ public class CashdeskControllerTest {
 
     @Test
     public void when_recordBalance_gets_right_inputs_than_cashdeskEvent_is_returned() throws Exception {
-        CashdeskEvent cashdeskEvent = new CashdeskEvent();
-        when(cashdeskService.recordBalance(anyLong(), anyInt(), anyInt(), anyInt(), anyBoolean()))
-                .thenReturn(cashdeskEvent);
+        CashDeskEvent cashDeskEvent = new CashDeskEvent();
+        when(cashDeskService.recordBalance(anyLong(), anyInt(), anyInt(), anyInt(), anyBoolean()))
+                .thenReturn(cashDeskEvent);
         BalanceWrapper wrapper = new BalanceWrapper();
         wrapper.setCashBalance(200);
         wrapper.setEndOfShift(false);
@@ -77,9 +72,9 @@ public class CashdeskControllerTest {
         mvc.perform(post("/api/recordBalance").header(AUTHORIZATION, VALID_TOKEN).contentType(APPLICATION_JSON)
                 .content(asJsonString(wrapper)))
                 .andExpect(status().isOk())
-                .andExpect(content().json(asJsonString(cashdeskEvent)));
+                .andExpect(content().json(asJsonString(cashDeskEvent)));
 
-        verify(cashdeskService).recordBalance(5L, 200, 5, 500, false);
+        verify(cashDeskService).recordBalance(5L, 200, 5, 500, false);
     }
 
     private String asJsonString(final Object obj) {

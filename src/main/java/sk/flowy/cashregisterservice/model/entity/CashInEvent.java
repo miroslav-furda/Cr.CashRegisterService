@@ -10,13 +10,14 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 
-@Entity(name = "pokladna_vklad")
-@Table
+@Entity
+@Table(name = "pokladna_vklad")
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
 public class CashInEvent implements Serializable {
+
+    private static final long serialVersionUID = -6801247041497273305L;
 
     @GeneratedValue
     @Id
@@ -25,7 +26,7 @@ public class CashInEvent implements Serializable {
     @ManyToOne
     @JoinColumn(name = "id_smena")
     @JsonIgnore
-    private CashdeskEvent cashdeskEvent;
+    private CashDeskEvent cashDeskEvent;
 
     @Column(name = "hotovost_suma")
     private int balance;
