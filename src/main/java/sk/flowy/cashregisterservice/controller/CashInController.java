@@ -23,21 +23,16 @@ public class CashInController {
     @RequestMapping(
             value = "/cashin",
             method = RequestMethod.POST)
-    public ResponseEntity<CashdeskEvent> cashDeskInput(
+    public ResponseEntity cashDeskInput(
             @RequestBody CashInWrapper cashInWrapper) {
-        CashdeskEvent cashdeskEvent = null;
         if (cashInWrapper.getUserId() != null && cashInWrapper.getBalance() != null) {
-            cashdeskEvent = cashdeskService.insertMoney(cashInWrapper);
+            if (cashdeskService.insertMoney(cashInWrapper) != null) {
+                return new ResponseEntity(HttpStatus.OK);
+            } else {
+                return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
         } else {
             throw new LackOfInformationForCashInException();
         }
-
-        if (cashdeskEvent != null) {
-            return new ResponseEntity<>(cashdeskEvent, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(cashdeskEvent, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-
     }
 }
