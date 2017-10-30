@@ -10,6 +10,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import sk.flowy.cashregisterservice.model.BalanceWrapper;
 import sk.flowy.cashregisterservice.model.entity.CashDeskEvent;
 import sk.flowy.cashregisterservice.security.CallResponse;
 import sk.flowy.cashregisterservice.security.TokenRepository;
@@ -60,7 +61,7 @@ public class CashDeskControllerTest {
     @Test
     public void when_recordBalance_gets_right_inputs_than_cashdeskEvent_is_returned() throws Exception {
         CashDeskEvent cashDeskEvent = new CashDeskEvent();
-        when(cashDeskService.recordBalance(anyLong(), anyInt(), anyInt(), anyInt(), anyBoolean()))
+        when(cashDeskService.recordBalance(any(BalanceWrapper.class)))
                 .thenReturn(cashDeskEvent);
         BalanceWrapper wrapper = new BalanceWrapper();
         wrapper.setCashBalance(200);
@@ -74,7 +75,7 @@ public class CashDeskControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().json(asJsonString(cashDeskEvent)));
 
-        verify(cashDeskService).recordBalance(5L, 200, 5, 500, false);
+        verify(cashDeskService).recordBalance(wrapper);
     }
 
     private String asJsonString(final Object obj) {
