@@ -1,4 +1,4 @@
-package sk.flowy.cashregisterservice.entity;
+package sk.flowy.cashregisterservice.model.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -6,29 +6,31 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.List;
 
 @Entity
 @Table(name = "uzivatel")
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
-public class CashdeskUser {
+public class CashDeskUser implements Serializable {
+
+    private static final long serialVersionUID = -174529975202704202L;
 
     @GeneratedValue
     @Id
     private Long id;
 
-    @OneToMany(mappedBy = "cashdeskUser")
-    private List<CashdeskEvent> cashdeskEvents;
+    @OneToMany(mappedBy = "cashDeskUser")
+    private List<CashDeskEvent> cashDeskEvents;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        CashdeskUser that = (CashdeskUser) o;
+        CashDeskUser that = (CashDeskUser) o;
 
         return id != null ? id.equals(that.id) : that.id == null;
     }

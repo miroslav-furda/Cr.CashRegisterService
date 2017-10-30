@@ -1,4 +1,4 @@
-package sk.flowy.cashregisterservice.entity;
+package sk.flowy.cashregisterservice.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
@@ -7,19 +7,20 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
 import static javax.persistence.CascadeType.ALL;
-import static javax.persistence.CascadeType.PERSIST;
 
 @Entity
-@Table(name = "smena")
+@Table(name = "zmena")
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
-public class CashdeskEvent {
+public class CashDeskEvent implements Serializable {
+
+    private static final long serialVersionUID = 2247811483967735395L;
 
     @GeneratedValue
     @Id
@@ -31,23 +32,23 @@ public class CashdeskEvent {
     @Column(name = "koniec")
     private Date endOfShift;
 
-    @OneToMany(mappedBy = "cashdeskEvent", cascade = ALL)
+    @OneToMany(mappedBy = "cashDeskEvent", cascade = ALL)
     private List<CashInEvent> cashInEvents;
 
-    @OneToMany(mappedBy = "cashdeskEvent", cascade = ALL)
+    @OneToMany(mappedBy = "cashDeskEvent", cascade = ALL)
     private List<CashOutEvent> cashOutEvents;
 
     @ManyToOne
     @JoinColumn(name = "id_uzivatel")
     @JsonIgnore
-    private CashdeskUser cashdeskUser;
+    private CashDeskUser cashDeskUser;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        CashdeskEvent that = (CashdeskEvent) o;
+        CashDeskEvent that = (CashDeskEvent) o;
 
         return id != null ? id.equals(that.id) : that.id == null;
     }
