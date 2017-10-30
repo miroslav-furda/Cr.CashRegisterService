@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import sk.flowy.cashregisterservice.entity.CashInEvent;
 import sk.flowy.cashregisterservice.entity.CashdeskEvent;
 import sk.flowy.cashregisterservice.entity.CashdeskUser;
-import sk.flowy.cashregisterservice.exception.CashdeskUserNotFoundException;
+import sk.flowy.cashregisterservice.exception.CashDeskUserNotFoundException;
 import sk.flowy.cashregisterservice.model.CashInWrapper;
 import sk.flowy.cashregisterservice.repository.CashdeskEventRepository;
 import sk.flowy.cashregisterservice.repository.CashdeskUserRepository;
@@ -18,14 +18,14 @@ import java.util.List;
 
 @Log4j
 @Service
-public class CashdeskServiceImpl implements CashdeskService {
+public class CashDeskServiceImpl implements CashDeskService {
 
     private final CashdeskEventRepository cashdeskEventRepository;
 
     private final CashdeskUserRepository cashdeskUserRepository;
 
     @Autowired
-    public CashdeskServiceImpl(CashdeskEventRepository cashdeskEventRepository, CashdeskUserRepository cashdeskUserRepository) {
+    public CashDeskServiceImpl(CashdeskEventRepository cashdeskEventRepository, CashdeskUserRepository cashdeskUserRepository) {
         this.cashdeskEventRepository = cashdeskEventRepository;
         this.cashdeskUserRepository = cashdeskUserRepository;
     }
@@ -64,7 +64,7 @@ public class CashdeskServiceImpl implements CashdeskService {
                 }
             }
         } else {
-            throw new CashdeskUserNotFoundException();
+            throw new CashDeskUserNotFoundException();
         }
     }
 

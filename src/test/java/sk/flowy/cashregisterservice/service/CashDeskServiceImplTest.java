@@ -10,7 +10,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import sk.flowy.cashregisterservice.entity.CashInEvent;
 import sk.flowy.cashregisterservice.entity.CashdeskEvent;
 import sk.flowy.cashregisterservice.entity.CashdeskUser;
-import sk.flowy.cashregisterservice.exception.CashdeskUserNotFoundException;
+import sk.flowy.cashregisterservice.exception.CashDeskUserNotFoundException;
 import sk.flowy.cashregisterservice.model.CashInWrapper;
 import sk.flowy.cashregisterservice.repository.CashdeskEventRepository;
 import sk.flowy.cashregisterservice.repository.CashdeskUserRepository;
@@ -22,21 +22,21 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = CashdeskServiceImpl.class)
-public class CashdeskServiceImplTest {
+@SpringBootTest(classes = CashDeskServiceImpl.class)
+public class CashDeskServiceImplTest {
 
     @MockBean
     private CashdeskEventRepository cashdeskEventRepository;
     @MockBean
     private CashdeskUserRepository cashdeskUserRepository;
-    private CashdeskServiceImpl cashdeskService;
+    private CashDeskServiceImpl cashdeskService;
 
     private final static Long NON_EXISTING_USER = 0L;
     private final static Long EXISTING_USER = 1L;
 
     @Before
         public void setup() {
-        cashdeskService = new CashdeskServiceImpl(cashdeskEventRepository,cashdeskUserRepository);
+        cashdeskService = new CashDeskServiceImpl(cashdeskEventRepository,cashdeskUserRepository);
     }
 
     @Test
@@ -93,7 +93,7 @@ public class CashdeskServiceImplTest {
         Assertions.assertThat(cashdeskUserRunningShift.getCashdeskEvents().get(0).getCashInEvents().get(1).getBalance()).isEqualTo(333);
     }
 
-    @Test(expected = CashdeskUserNotFoundException.class)
+    @Test(expected = CashDeskUserNotFoundException.class)
     public void if_user_is_not_found_or_not_existing_throw_cashdesk_user_not_found_exception() {
         CashInWrapper cashInWrapper = new CashInWrapper();
         cashInWrapper.setUserId(NON_EXISTING_USER);

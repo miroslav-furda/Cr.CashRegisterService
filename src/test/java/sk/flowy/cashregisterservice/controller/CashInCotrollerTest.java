@@ -14,7 +14,7 @@ import sk.flowy.cashregisterservice.entity.CashdeskEvent;
 import sk.flowy.cashregisterservice.model.CashInWrapper;
 import sk.flowy.cashregisterservice.security.CallResponse;
 import sk.flowy.cashregisterservice.security.TokenRepository;
-import sk.flowy.cashregisterservice.service.CashdeskService;
+import sk.flowy.cashregisterservice.service.CashDeskService;
 
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -32,7 +32,7 @@ public class CashInCotrollerTest {
     private MockMvc mvc;
 
     @MockBean
-    private CashdeskService cashdeskService;
+    private CashDeskService cashDeskService;
 
     @MockBean
     private TokenRepository tokenRepository;
@@ -53,7 +53,7 @@ public class CashInCotrollerTest {
         CashdeskEvent cashdeskEventMock = mock(CashdeskEvent.class);
         CashInWrapper cashInWrapper = new CashInWrapper();
 
-        when(cashdeskService.insertMoney(cashInWrapper)).thenReturn(cashdeskEventMock);
+        when(cashDeskService.insertMoney(cashInWrapper)).thenReturn(cashdeskEventMock);
 
         mvc.perform(post("/api/flowy/cashin").header(AUTHORIZATION, VALID_TOKEN).contentType(APPLICATION_JSON)
                 .content(asJsonString(cashInWrapper)))
