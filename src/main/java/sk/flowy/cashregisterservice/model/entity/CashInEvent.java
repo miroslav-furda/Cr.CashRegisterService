@@ -1,4 +1,4 @@
-package sk.flowy.cashregisterservice.entity;
+package sk.flowy.cashregisterservice.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
@@ -7,15 +7,17 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
 
-@Entity(name="pokladna_vklad")
-@Table
+@Entity
+@Table(name = "pokladna_vklad")
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
-public class CashInEvent {
+public class CashInEvent implements Serializable {
+
+    private static final long serialVersionUID = -6801247041497273305L;
 
     @GeneratedValue
     @Id
@@ -24,12 +26,12 @@ public class CashInEvent {
     @ManyToOne
     @JoinColumn(name = "id_smena")
     @JsonIgnore
-    private CashdeskEvent cashdeskEvent;
+    private CashDeskEvent cashDeskEvent;
 
-    @Column(name="hotovost_suma")
+    @Column(name = "hotovost_suma")
     private int balance;
 
-    @Column(name="created_at")
+    @Column(name = "created_at")
     private Date createdAt;
 
     @Override
