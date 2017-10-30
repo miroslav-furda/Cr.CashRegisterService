@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import sk.flowy.cashregisterservice.exception.UserNotOnShiftException;
+import sk.flowy.cashregisterservice.model.BalanceWrapper;
 import sk.flowy.cashregisterservice.model.entity.CashDeskEvent;
 import sk.flowy.cashregisterservice.model.entity.CashDeskUser;
 import sk.flowy.cashregisterservice.model.entity.CashOutEvent;
@@ -13,6 +14,7 @@ import sk.flowy.cashregisterservice.repository.CashDeskUserRepository;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Default {@link CashDeskService} implementation.
@@ -39,13 +41,14 @@ public class CashDeskServiceImpl implements CashDeskService {
 
 
     @Override
-    public CashDeskEvent recordBalance(Long userId, int cashBalance, int gastroTicketsBalance, int terminalBalance,
-                                       boolean endOfShift) {
-        if (!isUserOnShift(userId)) {
+    public CashDeskEvent recordBalance(BalanceWrapper balanceWrapper) {
+        Long userId = balanceWrapper.getUserId();
+        if (!getUserFromCurrentShift(userId).isPresent()) {
             log.warn("User " + userId + " has not began any shift yet.");
             throw new UserNotOnShiftException();
         }
-        CashDeskUser cashDeskUser = cashDeskUserRepository.findOne(userId);
+
+        CashDeskUser cashDeskUser = getUserFromCurrentShift(userId).get();
         CashDeskEvent cashDeskEvent = cashDeskUser.getCashDeskEvents().get(cashDeskUser.getCashDeskEvents().size() - 1);
 
         if (cashDeskEvent.getCashOutEvents() == null) {
@@ -53,13 +56,13 @@ public class CashDeskServiceImpl implements CashDeskService {
         }
 
         CashOutEvent cashOutEvent = new CashOutEvent();
-        cashOutEvent.setCashBalance(cashBalance);
-        cashOutEvent.setGastroTicketsBalance(gastroTicketsBalance);
-        cashOutEvent.setTerminalBalance(terminalBalance);
+        cashOutEvent.setCashBalance(balanceWrapper.getCashBalance());
+        cashOutEvent.setGastroTicketsBalance(balanceWrapper.getGastroTicketsBalance());
+        cashOutEvent.setTerminalBalance(balanceWrapper.getTerminalBalance());
         cashOutEvent.setCreatedAt(new Date());
         cashOutEvent.setCashDeskEvent(cashDeskEvent);
 
-        if (endOfShift) {
+        if (balanceWrapper.isEndOfShift()) {
             cashDeskEvent.setEndOfShift(new Date());
             cashOutEvent.setDailyBalance(true);
         } else {
@@ -70,15 +73,24 @@ public class CashDeskServiceImpl implements CashDeskService {
         return cashDeskEventRepository.save(cashDeskEvent);
     }
 
-    private boolean isUserOnShift(Long userId) {
+    @Override
+    public  Optional<CashDeskUser> getUserFromCurrentShift(Long userId) {
         CashDeskUser cashDeskUser = cashDeskUserRepository.findOne(userId);
+
+        if (cashDeskUser==null){
+            return Optional.empty();
+        }
 
         List<CashDeskEvent> cashDeskEvents = cashDeskUser.getCashDeskEvents();
         if (cashDeskEvents == null || cashDeskEvents.isEmpty()) {
-            return false;
+            return Optional.empty();
         }
         CashDeskEvent cashDeskEvent = cashDeskEvents.get(cashDeskEvents.size() - 1);
 
-        return cashDeskEvent.getStartOfShift() != null && cashDeskEvent.getEndOfShift() == null;
+        if (cashDeskEvent.getStartOfShift() == null || cashDeskEvent.getEndOfShift() != null){
+            return Optional.empty();
+        }
+
+        return Optional.of(cashDeskUser);
     }
 }

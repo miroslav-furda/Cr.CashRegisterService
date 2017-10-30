@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import sk.flowy.cashregisterservice.exception.WrongInputException;
+import sk.flowy.cashregisterservice.model.BalanceWrapper;
 import sk.flowy.cashregisterservice.service.CashDeskService;
 import sk.flowy.cashregisterservice.model.entity.CashDeskEvent;
 
@@ -44,24 +45,7 @@ public class CashDeskController {
             throw new WrongInputException();
         }
 
-        CashDeskEvent cashDeskEvent = cashDeskService.recordBalance(balanceWrapper.getUserId(), balanceWrapper
-                .getCashBalance(), balanceWrapper
-                .getGastroTicketsBalance(), balanceWrapper.getTerminalBalance(), balanceWrapper.isEndOfShift());
+        CashDeskEvent cashDeskEvent = cashDeskService.recordBalance(balanceWrapper);
         return new ResponseEntity<>(cashDeskEvent, OK);
-    }
-
-
-    /**
-     * Wrapper for data received from client about daily and interval balance.
-     */
-    @Data
-    private class BalanceWrapper implements Serializable {
-        private static final long serialVersionUID = 161995340013282537L;
-
-        private Long userId;
-        private int cashBalance;
-        private int gastroTicketsBalance;
-        private int terminalBalance;
-        private boolean endOfShift;
     }
 }
