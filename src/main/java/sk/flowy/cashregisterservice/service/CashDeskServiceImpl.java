@@ -3,66 +3,63 @@ package sk.flowy.cashregisterservice.service;
 import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import sk.flowy.cashregisterservice.entity.CashInEvent;
-import sk.flowy.cashregisterservice.entity.CashdeskEvent;
-import sk.flowy.cashregisterservice.entity.CashdeskUser;
-import sk.flowy.cashregisterservice.exception.CashDeskUserNotFoundException;
-import sk.flowy.cashregisterservice.model.CashInWrapper;
-import sk.flowy.cashregisterservice.repository.CashdeskEventRepository;
-import sk.flowy.cashregisterservice.repository.CashdeskUserRepository;
-import sk.flowy.cashregisterservice.exception.UserNotOnShiftException;
-import sk.flowy.cashregisterservice.model.BalanceWrapper;
+import sk.flowy.cashregisterservice.model.entity.CashInEvent;
 import sk.flowy.cashregisterservice.model.entity.CashDeskEvent;
 import sk.flowy.cashregisterservice.model.entity.CashDeskUser;
-import sk.flowy.cashregisterservice.model.entity.CashOutEvent;
+import sk.flowy.cashregisterservice.exception.CashDeskUserNotFoundException;
+import sk.flowy.cashregisterservice.model.CashInWrapper;
 import sk.flowy.cashregisterservice.repository.CashDeskEventRepository;
 import sk.flowy.cashregisterservice.repository.CashDeskUserRepository;
+import sk.flowy.cashregisterservice.exception.UserNotOnShiftException;
+import sk.flowy.cashregisterservice.model.BalanceWrapper;
+import sk.flowy.cashregisterservice.model.entity.CashOutEvent;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 
 @Log4j
 @Service
 public class CashDeskServiceImpl implements CashDeskService {
 
-    private final CashdeskEventRepository cashdeskEventRepository;
+    private final CashDeskEventRepository cashDeskEventRepository;
 
-    private final CashdeskUserRepository cashdeskUserRepository;
+    private final CashDeskUserRepository cashDeskUserRepository;
 
     @Autowired
-    public CashDeskServiceImpl(CashdeskEventRepository cashdeskEventRepository, CashdeskUserRepository cashdeskUserRepository) {
-        this.cashdeskEventRepository = cashdeskEventRepository;
-        this.cashdeskUserRepository = cashdeskUserRepository;
+    public CashDeskServiceImpl(CashDeskEventRepository cashDeskEventRepository, CashDeskUserRepository cashDeskUserRepository) {
+        this.cashDeskEventRepository = cashDeskEventRepository;
+        this.cashDeskUserRepository = cashDeskUserRepository;
     }
 
     @Override
-    public CashdeskEvent insertMoney(CashInWrapper cashInWrapper) {
+    public CashDeskEvent insertMoney(CashInWrapper cashInWrapper) {
         Date createdAt = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
-        CashdeskEvent shift = getShift(cashInWrapper.getUserId());
+        CashDeskEvent shift = getShift(cashInWrapper.getUserId());
 
         CashInEvent cashInEvent = new CashInEvent();
         cashInEvent.setBalance(cashInWrapper.getBalance());
         cashInEvent.setCreatedAt(createdAt);
-        cashInEvent.setCashdeskEvent(shift);
+        cashInEvent.setCashDeskEvent(shift);
 
         List<CashInEvent> cashInEvents = shift.getCashInEvents();
         cashInEvents.add(cashInEvent);
 
-        return cashdeskEventRepository.save(shift);
+        return cashDeskEventRepository.save(shift);
     }
 
-    private CashdeskEvent getShift(Long userId) {
+    private CashDeskEvent getShift(Long userId) {
 
-        CashdeskUser cashdeskUser = cashdeskUserRepository.findOne(userId);
-        if ( cashdeskUser != null) {
-            List<CashdeskEvent> cashdeskEvents = cashdeskUser.getCashdeskEvents();
+        CashDeskUser cashdeskUser = cashDeskUserRepository.findOne(userId);
+        if (cashdeskUser != null) {
+            List<CashDeskEvent> cashdeskEvents = cashdeskUser.getCashDeskEvents();
             if (cashdeskEvents == null || cashdeskEvents.isEmpty()) {
                 Date createdAt = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
                 return createShift(userId, createdAt);
             } else {
-                CashdeskEvent lastShift = cashdeskEvents.get(cashdeskEvents.size() - 1);
+                CashDeskEvent lastShift = cashdeskEvents.get(cashdeskEvents.size() - 1);
                 if (lastShift.getEndOfShift() != null) {
                     Date createdAt = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
                     return createShift(userId, createdAt);
@@ -75,43 +72,17 @@ public class CashDeskServiceImpl implements CashDeskService {
         }
     }
 
-    private CashdeskEvent createShift(Long userId, Date startOfShift) {
-        CashdeskEvent cashdeskEvent = new CashdeskEvent();
-        CashdeskUser cashdeskUser = cashdeskUserRepository.findOne(userId);
+    private CashDeskEvent createShift(Long userId, Date startOfShift) {
+        CashDeskEvent cashDeskEvent = new CashDeskEvent();
+        CashDeskUser cashDeskUser = cashDeskUserRepository.findOne(userId);
         List<CashInEvent> cashInEvents = new ArrayList<>();
 
-        cashdeskEvent.setCashdeskUser(cashdeskUser);
-        cashdeskEvent.setStartOfShift(startOfShift);
-        cashdeskEvent.setCashInEvents(cashInEvents);
+        cashDeskEvent.setCashDeskUser(cashDeskUser);
+        cashDeskEvent.setStartOfShift(startOfShift);
+        cashDeskEvent.setCashInEvents(cashInEvents);
 
-        return cashdeskEvent;
+        return cashDeskEvent;
     }
-
-import java.util.Optional;
-
-/**
- * Default {@link CashDeskService} implementation.
- */
-@Service
-@Log4j
-public class CashDeskServiceImpl implements CashDeskService {
-
-    private final CashDeskUserRepository cashDeskUserRepository;
-    private final CashDeskEventRepository cashDeskEventRepository;
-
-    /**
-     * Constructor.
-     *
-     * @param cashDeskUserRepository repository for amnipulating with CashDeskUser table.
-     * @param cashDeskEventRepository repository for amnipulating with CashDeskEvent table.
-     */
-    @Autowired
-    public CashDeskServiceImpl(CashDeskUserRepository cashDeskUserRepository, CashDeskEventRepository
-            cashDeskEventRepository) {
-        this.cashDeskUserRepository = cashDeskUserRepository;
-        this.cashDeskEventRepository = cashDeskEventRepository;
-    }
-
 
     @Override
     public CashDeskEvent recordBalance(BalanceWrapper balanceWrapper) {
@@ -148,10 +119,10 @@ public class CashDeskServiceImpl implements CashDeskService {
     }
 
     @Override
-    public  Optional<CashDeskUser> getUserFromCurrentShift(Long userId) {
+    public Optional<CashDeskUser> getUserFromCurrentShift(Long userId) {
         CashDeskUser cashDeskUser = cashDeskUserRepository.findOne(userId);
 
-        if (cashDeskUser==null){
+        if (cashDeskUser == null) {
             return Optional.empty();
         }
 
@@ -161,7 +132,7 @@ public class CashDeskServiceImpl implements CashDeskService {
         }
         CashDeskEvent cashDeskEvent = cashDeskEvents.get(cashDeskEvents.size() - 1);
 
-        if (cashDeskEvent.getStartOfShift() == null || cashDeskEvent.getEndOfShift() != null){
+        if (cashDeskEvent.getStartOfShift() == null || cashDeskEvent.getEndOfShift() != null) {
             return Optional.empty();
         }
 

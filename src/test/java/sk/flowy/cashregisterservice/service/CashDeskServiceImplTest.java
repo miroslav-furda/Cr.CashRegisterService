@@ -7,24 +7,15 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
-import sk.flowy.cashregisterservice.entity.CashInEvent;
-import sk.flowy.cashregisterservice.entity.CashdeskEvent;
-import sk.flowy.cashregisterservice.entity.CashdeskUser;
-import sk.flowy.cashregisterservice.exception.CashDeskUserNotFoundException;
-import sk.flowy.cashregisterservice.model.CashInWrapper;
-import sk.flowy.cashregisterservice.repository.CashdeskEventRepository;
-import sk.flowy.cashregisterservice.repository.CashdeskUserRepository;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
-import sk.flowy.cashregisterservice.exception.UserNotOnShiftException;
-import sk.flowy.cashregisterservice.model.BalanceWrapper;
+import sk.flowy.cashregisterservice.model.entity.CashInEvent;
 import sk.flowy.cashregisterservice.model.entity.CashDeskEvent;
 import sk.flowy.cashregisterservice.model.entity.CashDeskUser;
+import sk.flowy.cashregisterservice.exception.CashDeskUserNotFoundException;
+import sk.flowy.cashregisterservice.model.CashInWrapper;
 import sk.flowy.cashregisterservice.repository.CashDeskEventRepository;
 import sk.flowy.cashregisterservice.repository.CashDeskUserRepository;
+import sk.flowy.cashregisterservice.exception.UserNotOnShiftException;
+import sk.flowy.cashregisterservice.model.BalanceWrapper;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -39,22 +30,38 @@ import static org.mockito.Mockito.when;
 public class CashDeskServiceImplTest {
 
     @MockBean
-    private CashdeskEventRepository cashdeskEventRepository;
+    private CashDeskEventRepository cashDeskEventRepository;
     @MockBean
-    private CashdeskUserRepository cashdeskUserRepository;
-    private CashDeskServiceImpl cashdeskService;
+    private CashDeskUserRepository cashDeskUserRepository;
+    private CashDeskServiceImpl cashDeskService;
 
     private final static Long NON_EXISTING_USER = 0L;
     private final static Long EXISTING_USER = 1L;
 
+    private static final Long USER_ON_SHIFT = 1L;
+    private static final Long USER_NOT_ON_SHIFT = 2L;
+    private static final int CASH = 100;
+    private static final int TICKETS = 10;
+    private static final int TERMINAL = 500;
+
+    private CashDeskUser cashDeskUser;
+    private BalanceWrapper balanceWrapper;
+
     @Before
         public void setup() {
-        cashdeskService = new CashDeskServiceImpl(cashdeskEventRepository,cashdeskUserRepository);
+        cashDeskService = new CashDeskServiceImpl(cashDeskEventRepository, cashDeskUserRepository);
+
+        CashDeskEvent cashDeskEvent = new CashDeskEvent();
+        cashDeskEvent.setStartOfShift(new Date());
+        cashDeskUser = new CashDeskUser();
+        cashDeskUser.setCashDeskEvents(new ArrayList<>());
+        cashDeskUser.getCashDeskEvents().add(cashDeskEvent);
+        cashDeskService = new CashDeskServiceImpl(cashDeskEventRepository, cashDeskUserRepository);
     }
 
     @Test
     public void if_shift_is_starting_create_new_and_insert_money() {
-        CashdeskEvent cashdeskEventNew = new CashdeskEvent();
+        CashDeskEvent cashdeskEventNew = new CashDeskEvent();
         cashdeskEventNew.setStartOfShift(new Date());
         cashdeskEventNew.setCashInEvents(new ArrayList<>());
 
@@ -62,18 +69,18 @@ public class CashDeskServiceImplTest {
         cashInWrapper.setUserId(EXISTING_USER);
         cashInWrapper.setBalance(1000);
 
-        CashdeskUser cashdeskUserStartingShift;
-        cashdeskUserStartingShift = new CashdeskUser();
-        cashdeskUserStartingShift.setCashdeskEvents(new ArrayList<>());
-        cashdeskUserStartingShift.getCashdeskEvents().add(cashdeskEventNew);
+        CashDeskUser cashdeskUserStartingShift;
+        cashdeskUserStartingShift = new CashDeskUser();
+        cashdeskUserStartingShift.setCashDeskEvents(new ArrayList<>());
+        cashdeskUserStartingShift.getCashDeskEvents().add(cashdeskEventNew);
 
-        when(cashdeskUserRepository.findOne(EXISTING_USER)).thenReturn(cashdeskUserStartingShift);
+        when(cashDeskUserRepository.findOne(EXISTING_USER)).thenReturn(cashdeskUserStartingShift);
 
-        Assertions.assertThat(cashdeskUserStartingShift.getCashdeskEvents().get(0).getCashInEvents().isEmpty());
-        cashdeskService.insertMoney(cashInWrapper);
-        verify(cashdeskEventRepository).save(cashdeskUserStartingShift.getCashdeskEvents().get(0));
-        Assertions.assertThat(cashdeskUserStartingShift.getCashdeskEvents().get(0).getCashInEvents().size()).isEqualTo(1);
-        Assertions.assertThat(cashdeskUserStartingShift.getCashdeskEvents().get(0).getCashInEvents().get(0).getBalance()).isEqualTo(1000);
+        Assertions.assertThat(cashdeskUserStartingShift.getCashDeskEvents().get(0).getCashInEvents().isEmpty());
+        cashDeskService.insertMoney(cashInWrapper);
+        verify(cashDeskEventRepository).save(cashdeskUserStartingShift.getCashDeskEvents().get(0));
+        Assertions.assertThat(cashdeskUserStartingShift.getCashDeskEvents().get(0).getCashInEvents().size()).isEqualTo(1);
+        Assertions.assertThat(cashdeskUserStartingShift.getCashDeskEvents().get(0).getCashInEvents().get(0).getBalance()).isEqualTo(1000);
     }
 
     @Test
@@ -83,27 +90,27 @@ public class CashDeskServiceImplTest {
         cashInEvent.setBalance(500);
         cashInEvent.setId(1L);
 
-        CashdeskEvent cashdeskEventRunning = new CashdeskEvent();
+        CashDeskEvent cashdeskEventRunning = new CashDeskEvent();
         cashdeskEventRunning.setStartOfShift(new Date());
         cashdeskEventRunning.setCashInEvents(new ArrayList<>());
-        cashInEvent.setCashdeskEvent(cashdeskEventRunning);
+        cashInEvent.setCashDeskEvent(cashdeskEventRunning);
         cashdeskEventRunning.getCashInEvents().add(cashInEvent);
 
         CashInWrapper cashInWrapper = new CashInWrapper();
         cashInWrapper.setUserId(EXISTING_USER);
         cashInWrapper.setBalance(333);
 
-        CashdeskUser cashdeskUserRunningShift;
-        cashdeskUserRunningShift = new CashdeskUser();
-        cashdeskUserRunningShift.setCashdeskEvents(new ArrayList<>());
-        cashdeskUserRunningShift.getCashdeskEvents().add(cashdeskEventRunning);
+        CashDeskUser cashdeskUserRunningShift;
+        cashdeskUserRunningShift = new CashDeskUser();
+        cashdeskUserRunningShift.setCashDeskEvents(new ArrayList<>());
+        cashdeskUserRunningShift.getCashDeskEvents().add(cashdeskEventRunning);
 
-        when(cashdeskUserRepository.findOne(EXISTING_USER)).thenReturn(cashdeskUserRunningShift);
-        Assertions.assertThat(cashdeskUserRunningShift.getCashdeskEvents().get(0).getCashInEvents().size()).isEqualTo(1);
-        cashdeskService.insertMoney(cashInWrapper);
-        verify(cashdeskEventRepository).save(cashdeskUserRunningShift.getCashdeskEvents().get(0));
-        Assertions.assertThat(cashdeskUserRunningShift.getCashdeskEvents().get(0).getCashInEvents().size()).isEqualTo(2);
-        Assertions.assertThat(cashdeskUserRunningShift.getCashdeskEvents().get(0).getCashInEvents().get(1).getBalance()).isEqualTo(333);
+        when(cashDeskUserRepository.findOne(EXISTING_USER)).thenReturn(cashdeskUserRunningShift);
+        Assertions.assertThat(cashdeskUserRunningShift.getCashDeskEvents().get(0).getCashInEvents().size()).isEqualTo(1);
+        cashDeskService.insertMoney(cashInWrapper);
+        verify(cashDeskEventRepository).save(cashdeskUserRunningShift.getCashDeskEvents().get(0));
+        Assertions.assertThat(cashdeskUserRunningShift.getCashDeskEvents().get(0).getCashInEvents().size()).isEqualTo(2);
+        Assertions.assertThat(cashdeskUserRunningShift.getCashDeskEvents().get(0).getCashInEvents().get(1).getBalance()).isEqualTo(333);
     }
 
     @Test(expected = CashDeskUserNotFoundException.class)
@@ -112,38 +119,9 @@ public class CashDeskServiceImplTest {
         cashInWrapper.setUserId(NON_EXISTING_USER);
         cashInWrapper.setBalance(1000);
 
-        when(cashdeskUserRepository.findOne(NON_EXISTING_USER)).thenReturn(null);
-        cashdeskService.insertMoney(cashInWrapper);
-        verify(cashdeskEventRepository).save(new CashdeskUser().getCashdeskEvents().get(0));
-    }
-}
-
-public class CashDeskServiceImplTest {
-
-    private static final Long USER_ON_SHIFT = 1L;
-    private static final Long USER_NOT_ON_SHIFT = 2L;
-    private static final int CASH = 100;
-    private static final int TICKETS = 10;
-    private static final int TERMINAL = 500;
-
-    @MockBean
-    private CashDeskUserRepository cashDeskUserRepository;
-    @MockBean
-    private CashDeskEventRepository cashDeskEventRepository;
-
-    private CashDeskService cashDeskService;
-    private CashDeskUser cashDeskUser;
-    private BalanceWrapper balanceWrapper;
-
-    @Before
-    public void setup() {
-        CashDeskEvent cashDeskEvent = new CashDeskEvent();
-        cashDeskEvent.setStartOfShift(new Date());
-        cashDeskUser = new CashDeskUser();
-        cashDeskUser.setCashDeskEvents(new ArrayList<>());
-        cashDeskUser.getCashDeskEvents().add(cashDeskEvent);
-        cashDeskService = new CashDeskServiceImpl(cashDeskUserRepository, cashDeskEventRepository);
-
+        when(cashDeskUserRepository.findOne(NON_EXISTING_USER)).thenReturn(null);
+        cashDeskService.insertMoney(cashInWrapper);
+        verify(cashDeskEventRepository).save(new CashDeskUser().getCashDeskEvents().get(0));
     }
 
     @Test(expected = UserNotOnShiftException.class)
@@ -179,3 +157,7 @@ public class CashDeskServiceImplTest {
         assertThat(cashDeskUser.getCashDeskEvents().get(0).getCashOutEvents().get(0).isDailyBalance()).isEqualTo(false);
     }
 }
+
+
+
+
