@@ -43,12 +43,13 @@ public class CashDeskServiceImpl implements CashDeskService {
     @Override
     public CashDeskEvent recordBalance(BalanceWrapper balanceWrapper) {
         Long userId = balanceWrapper.getUserId();
-        if (!getUserFromCurrentShift(userId).isPresent()) {
+        Optional<CashDeskUser> userOptional = getUserFromCurrentShift(userId);
+        if (!userOptional.isPresent()) {
             log.warn("User " + userId + " has not began any shift yet.");
             throw new UserNotOnShiftException();
         }
 
-        CashDeskUser cashDeskUser = getUserFromCurrentShift(userId).get();
+        CashDeskUser cashDeskUser = userOptional.get();
         CashDeskEvent cashDeskEvent = cashDeskUser.getCashDeskEvents().get(cashDeskUser.getCashDeskEvents().size() - 1);
 
         if (cashDeskEvent.getCashOutEvents() == null) {
