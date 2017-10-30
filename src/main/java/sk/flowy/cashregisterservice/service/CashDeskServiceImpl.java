@@ -36,64 +36,49 @@ public class CashDeskServiceImpl implements CashDeskService {
 
     @Override
     public CashDeskEvent insertMoney(CashInWrapper cashInWrapper) {
-        Date createdAt = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
-        CashDeskEvent shift = getShift(cashInWrapper.getUserId());
+        Date createdAt = new Date();
+        CashDeskUser cashDeskUser = getUser(cashInWrapper.getUserId());
+        CashDeskEvent cashDeskEvent;
+        if (!isUserOnShift(cashDeskUser)) {
+            cashDeskEvent = createShift(cashDeskUser);
+        } else {
+            List<CashDeskEvent> cashDeskEvents = cashDeskUser.getCashDeskEvents();
+            cashDeskEvent = cashDeskEvents.get(cashDeskEvents.size() - 1);
+        }
+
 
         CashInEvent cashInEvent = new CashInEvent();
         cashInEvent.setBalance(cashInWrapper.getBalance());
         cashInEvent.setCreatedAt(createdAt);
-        cashInEvent.setCashDeskEvent(shift);
+        cashInEvent.setCashDeskEvent(cashDeskEvent);
 
-        List<CashInEvent> cashInEvents = shift.getCashInEvents();
+        List<CashInEvent> cashInEvents = cashDeskEvent.getCashInEvents();
         cashInEvents.add(cashInEvent);
 
-        return cashDeskEventRepository.save(shift);
+        return cashDeskEventRepository.save(cashDeskEvent);
     }
 
-    private CashDeskEvent getShift(Long userId) {
-
+    private CashDeskUser getUser(Long userId) {
         CashDeskUser cashdeskUser = cashDeskUserRepository.findOne(userId);
-        if (cashdeskUser != null) {
-            List<CashDeskEvent> cashdeskEvents = cashdeskUser.getCashDeskEvents();
-            if (cashdeskEvents == null || cashdeskEvents.isEmpty()) {
-                Date createdAt = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
-                return createShift(userId, createdAt);
-            } else {
-                CashDeskEvent lastShift = cashdeskEvents.get(cashdeskEvents.size() - 1);
-                if (lastShift.getEndOfShift() != null) {
-                    Date createdAt = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
-                    return createShift(userId, createdAt);
-                } else {
-                    return lastShift;
-                }
-            }
-        } else {
+        if (cashdeskUser == null) {
             throw new CashDeskUserNotFoundException();
+        } else {
+            if (cashdeskUser.getCashDeskEvents() == null) {
+                cashdeskUser.setCashDeskEvents(new ArrayList<CashDeskEvent>());
+            }
+            return cashdeskUser;
         }
-    }
-
-    private CashDeskEvent createShift(Long userId, Date startOfShift) {
-        CashDeskEvent cashDeskEvent = new CashDeskEvent();
-        CashDeskUser cashDeskUser = cashDeskUserRepository.findOne(userId);
-        List<CashInEvent> cashInEvents = new ArrayList<>();
-
-        cashDeskEvent.setCashDeskUser(cashDeskUser);
-        cashDeskEvent.setStartOfShift(startOfShift);
-        cashDeskEvent.setCashInEvents(cashInEvents);
-
-        return cashDeskEvent;
     }
 
     @Override
     public CashDeskEvent recordBalance(BalanceWrapper balanceWrapper) {
         Long userId = balanceWrapper.getUserId();
-        Optional<CashDeskUser> userOptional = getUserFromCurrentShift(userId);
-        if (!userOptional.isPresent()) {
+        CashDeskUser cashDeskUser = getUser(userId);
+        if (!isUserOnShift(cashDeskUser)) {
             log.warn("User " + userId + " has not began any shift yet.");
             throw new UserNotOnShiftException();
         }
 
-        CashDeskUser cashDeskUser = userOptional.get();
         CashDeskEvent cashDeskEvent = cashDeskUser.getCashDeskEvents().get(cashDeskUser.getCashDeskEvents().size() - 1);
 
         if (cashDeskEvent.getCashOutEvents() == null) {
@@ -118,24 +103,24 @@ public class CashDeskServiceImpl implements CashDeskService {
         return cashDeskEventRepository.save(cashDeskEvent);
     }
 
-    @Override
-    public Optional<CashDeskUser> getUserFromCurrentShift(Long userId) {
-        CashDeskUser cashDeskUser = cashDeskUserRepository.findOne(userId);
-
-        if (cashDeskUser == null) {
-            return Optional.empty();
+    private boolean isUserOnShift(CashDeskUser cashDeskUser) {
+        List<CashDeskEvent> cashdeskEvents = cashDeskUser.getCashDeskEvents();
+        if (cashdeskEvents != null && !cashdeskEvents.isEmpty() && (cashdeskEvents.get(cashdeskEvents.size() - 1).getEndOfShift() == null)){
+            return true;
         }
-
-        List<CashDeskEvent> cashDeskEvents = cashDeskUser.getCashDeskEvents();
-        if (cashDeskEvents == null || cashDeskEvents.isEmpty()) {
-            return Optional.empty();
-        }
-        CashDeskEvent cashDeskEvent = cashDeskEvents.get(cashDeskEvents.size() - 1);
-
-        if (cashDeskEvent.getStartOfShift() == null || cashDeskEvent.getEndOfShift() != null) {
-            return Optional.empty();
-        }
-
-        return Optional.of(cashDeskUser);
+        return false;
     }
+
+    private CashDeskEvent createShift(CashDeskUser cashDeskUser) {
+        CashDeskEvent cashDeskEvent = new CashDeskEvent();
+        List<CashInEvent> cashInEvents = new ArrayList<>();
+
+        cashDeskEvent.setCashDeskUser(cashDeskUser);
+        Date startOfShift = new Date();
+        cashDeskEvent.setStartOfShift(startOfShift);
+        cashDeskEvent.setCashInEvents(cashInEvents);
+
+        return cashDeskEvent;
+    }
+
 }

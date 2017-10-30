@@ -20,14 +20,12 @@ public interface CashDeskService {
      */
     CashDeskEvent recordBalance(BalanceWrapper balanceWrapper);
 
-    /**
-     * Gets user currently on shift.
-     *
-     * @param userId id of user.
-     * @return optional of either {@link CashDeskUser} or nothing if user is not currently on shift.
-     */
-    Optional<CashDeskUser> getUserFromCurrentShift(Long userId);
 
+    /**
+     *
+     * @param cashInWrapper holding information about cashflow
+     * @return saved CashDeskEvent instance.
+     */
     CashDeskEvent insertMoney(CashInWrapper cashInWrapper);
 
 }
