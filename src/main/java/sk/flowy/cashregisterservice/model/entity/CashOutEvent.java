@@ -24,7 +24,7 @@ public class CashOutEvent implements Serializable {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "id_smena")
+    @JoinColumn(name = "id_zmena")
     @JsonIgnore
     private CashDeskEvent cashDeskEvent;
 

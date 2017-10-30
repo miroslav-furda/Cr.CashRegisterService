@@ -14,7 +14,7 @@ import java.util.List;
 import static javax.persistence.CascadeType.ALL;
 
 @Entity
-@Table(name = "smena")
+@Table(name = "zmena")
 @NoArgsConstructor
 @Getter
 @Setter
