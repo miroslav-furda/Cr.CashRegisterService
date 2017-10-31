@@ -62,12 +62,12 @@ public class CashDeskServiceImpl implements CashDeskService {
         CashDeskUser cashdeskUser = cashDeskUserRepository.findOne(userId);
         if (cashdeskUser == null) {
             throw new CashDeskUserNotFoundException();
-        } else {
-            if (cashdeskUser.getCashDeskEvents() == null) {
-                cashdeskUser.setCashDeskEvents(new ArrayList<CashDeskEvent>());
-            }
-            return cashdeskUser;
         }
+        if (cashdeskUser.getCashDeskEvents() == null) {
+            cashdeskUser.setCashDeskEvents(new ArrayList<CashDeskEvent>());
+        }
+        return cashdeskUser;
+
     }
 
     @Override
@@ -105,7 +105,7 @@ public class CashDeskServiceImpl implements CashDeskService {
 
     private boolean isUserOnShift(CashDeskUser cashDeskUser) {
         List<CashDeskEvent> cashdeskEvents = cashDeskUser.getCashDeskEvents();
-        if (cashdeskEvents != null && !cashdeskEvents.isEmpty() && (cashdeskEvents.get(cashdeskEvents.size() - 1).getEndOfShift() == null)){
+        if (!cashdeskEvents.isEmpty() && (cashdeskEvents.get(cashdeskEvents.size() - 1).getEndOfShift() == null)){
             return true;
         }
         return false;
