@@ -11,6 +11,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import sk.flowy.cashregisterservice.model.BalanceWrapper;
+import sk.flowy.cashregisterservice.model.CashInWrapper;
 import sk.flowy.cashregisterservice.model.entity.CashDeskEvent;
 import sk.flowy.cashregisterservice.security.CallResponse;
 import sk.flowy.cashregisterservice.security.TokenRepository;
@@ -76,6 +77,33 @@ public class CashDeskControllerTest {
                 .andExpect(content().json(asJsonString(cashDeskEvent)));
 
         verify(cashDeskService).recordBalance(wrapper);
+    }
+
+    @Test
+    public void if_not_all_inputs_are_provided_throw_lack_of_info_exception() throws Exception{
+        CashDeskEvent cashDeskEvent = new CashDeskEvent();
+        CashInWrapper cashInWrapper = new CashInWrapper();
+
+        when(cashDeskService.insertMoney(cashInWrapper)).thenReturn(cashDeskEvent);
+
+        mvc.perform(post("/api/cashin").header(AUTHORIZATION, VALID_TOKEN).contentType(APPLICATION_JSON)
+                .content(asJsonString(cashInWrapper)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void if_all_inputs_are_correct_then() throws Exception{
+        CashDeskEvent cashDeskEvent = new CashDeskEvent();
+        CashInWrapper cashInWrapper = new CashInWrapper(9L, 200);
+
+        when(cashDeskService.insertMoney(cashInWrapper)).thenReturn(cashDeskEvent);
+
+        mvc.perform(post("/api/cashin").header(AUTHORIZATION, VALID_TOKEN).contentType(APPLICATION_JSON)
+                .content(asJsonString(cashInWrapper)))
+                .andExpect(status().isOk())
+                .andExpect(content().json(asJsonString(cashDeskEvent)));
+
+        verify(cashDeskService).insertMoney(cashInWrapper);
     }
 
     private String asJsonString(final Object obj) {

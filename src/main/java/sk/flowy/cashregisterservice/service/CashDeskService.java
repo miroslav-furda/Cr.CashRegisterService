@@ -1,5 +1,6 @@
 package sk.flowy.cashregisterservice.service;
 
+import sk.flowy.cashregisterservice.model.CashInWrapper;
 import sk.flowy.cashregisterservice.model.BalanceWrapper;
 import sk.flowy.cashregisterservice.model.entity.CashDeskEvent;
 import sk.flowy.cashregisterservice.model.entity.CashDeskUser;
@@ -19,12 +20,12 @@ public interface CashDeskService {
      */
     CashDeskEvent recordBalance(BalanceWrapper balanceWrapper);
 
+
     /**
-     * Gets user currently on shift.
      *
-     * @param userId id of user.
-     * @return optional of either {@link CashDeskUser} or nothing if user is not currently on shift.
+     * @param cashInWrapper holding information about cashflow
+     * @return saved CashDeskEvent instance.
      */
-    Optional<CashDeskUser> getUserFromCurrentShift(Long userId);
+    CashDeskEvent insertMoney(CashInWrapper cashInWrapper);
 
 }
